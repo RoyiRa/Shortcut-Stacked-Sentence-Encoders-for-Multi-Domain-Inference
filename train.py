@@ -39,7 +39,7 @@ def train(model, train_loader, dev_loader, device, batch, epochs):
     best_acc = 0.0
 
     report_freq = 512
-    eval_freq = report_freq * 8
+    eval_freq = report_freq * 32
 
     train_iterator = trange(0, epochs, desc="Epoch", position=0, leave=True)
     for epoch in train_iterator:
@@ -64,13 +64,14 @@ def train(model, train_loader, dev_loader, device, batch, epochs):
             seen_examples += logits.shape[0]
             train_loss += loss.item()
             if seen_examples % report_freq == 0:
-                print(f'Train loss: {(loss / report_freq):.8f}')
+                print(f'Train loss: {(train_loss / report_freq):.8f}')
                 train_loss = 0
 
             if seen_examples % eval_freq == 0:
                 acc = predict(model, dev_loader, device)
                 if acc > best_acc:
                     best_acc = acc
+                print(f'Epoch: {epoch} dev acc: {acc:.8f}')
                 print(f'Epoch: {epoch} best dev acc: {best_acc:.8f}')
 
 
