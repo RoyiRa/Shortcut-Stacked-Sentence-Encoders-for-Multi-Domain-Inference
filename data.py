@@ -1,9 +1,13 @@
-from datasets import load_dataset
 from torch.utils.data import Dataset
 import numpy as np
+import torch
+
 
 PAD = '<PAD>'
 UNK = '<UNK>'
+PREMISE = 'premise'
+HYPOTHESIS = 'hypothesis'
+LABEL = 'label'
 
 
 # Data Fields
@@ -38,27 +42,29 @@ def load_glove_vectors(file):
 
 
 class SNLIDataset(Dataset):
-    PREMISE = 'premise'
-    HYPOTHESIS = 'hypothesis'
-    LABEL = 'label'
 
-    def __init__(self, dataset, vocab):
+
+    def __init__(self, dataset, vocab, tokenizer):
         self.dataset = dataset
         self.vocab = vocab
+        self.tokenizer = tokenizer
 
         self.examples = [self._tensorize_example(ex) for ex in dataset]
 
     def _tensorize_example(self, example):
-        premise, hypothesis, label = example[self.PREMISE], example[self.HYPOTHESIS], example[self.LABEL]
+        premise, hypothesis, label = example[PREMISE], example[HYPOTHESIS], example[LABEL]
 
-        premise_ids = [self.vocab[t] if t in self.vocab else self.vocab[UNK] for t in premise.split()]
-        hypothesis_ids = [self.vocab[t] if t in self.vocab else self.vocab[UNK] for t in hypothesis.split()]
+        tokens = [t.text.lower() for t in self.tokenizer(premise)]
+        premise_ids = [self.vocab[t.lower()] if t.lower() in self.vocab else self.vocab[UNK] for t in tokens]
+
+        tokens = [t.text.lower() for t in self.tokenizer(hypothesis)]
+        hypothesis_ids = [self.vocab[t.lower()] if t.lower() in self.vocab else self.vocab[UNK] for t in tokens]
 
         premise_ids = torch.tensor(premise_ids, dtype=torch.long)
         hypothesis_ids = torch.tensor(hypothesis_ids, dtype=torch.long)
         label = torch.tensor(label, dtype=torch.long)
 
-        return premise_ids, hypothesis_ids, label
+        return {PREMISE: premise_ids, HYPOTHESIS: hypothesis_ids, LABEL: label}
 
     def __len__(self):
         return len(self.examples)
