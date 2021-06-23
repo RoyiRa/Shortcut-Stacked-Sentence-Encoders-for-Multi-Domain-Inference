@@ -17,7 +17,8 @@ LABEL = 'label'
 #           0, indicating that the hypothesis entails the premise,
 #           1, indicating that the premise and hypothesis neither entail nor contradict each other
 #           2, indicating that the hypothesis contradicts the premise.
-# Dataset instances which don't have any gold label are marked with -1 label. Make sure you filter them before starting the training using datasets.Dataset.filter.
+# Dataset instances which don't have any gold label are marked with -1 label.
+# Make sure you filter them before starting the training using datasets.Dataset.filter.
 
 
 def load_glove_vectors(file):
@@ -38,7 +39,7 @@ def load_glove_vectors(file):
     vocab[PAD] = len(vocab)
     W.append(np.zeros(d))
 
-    return np.array(W), vocab
+    return np.array(W, dtype=np.float32), vocab
 
 
 class SNLIDataset(Dataset):
@@ -49,10 +50,11 @@ class SNLIDataset(Dataset):
         self.vocab = vocab
         self.tokenizer = tokenizer
 
-        self.examples = [self._tensorize_example(ex) for ex in dataset]
+        self.examples = [self._tensorize_example(ex) for ex in dataset if ex[LABEL] != -1]
 
     def _tensorize_example(self, example):
         premise, hypothesis, label = example[PREMISE], example[HYPOTHESIS], example[LABEL]
+
 
         tokens = [t.text.lower() for t in self.tokenizer(premise)]
         premise_ids = [self.vocab[t.lower()] if t.lower() in self.vocab else self.vocab[UNK] for t in tokens]
