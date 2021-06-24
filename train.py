@@ -169,7 +169,7 @@ if __name__ == '__main__':
     print(f'best_acc_dev: {best_acc}')
 
     model_path = 'data/model.pt'
-    print(f'Saving model and train dataset to: {model_path} is a checkpoint dict')
+    print(f'Saving model to: {model_path} is a checkpoint dict')
     torch.save({'model_state_dict': state_dict}, model_path)
 
     print(f'Evaluating on saved model')
