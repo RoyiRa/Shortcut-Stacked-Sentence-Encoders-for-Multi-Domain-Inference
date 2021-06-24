@@ -33,7 +33,7 @@ def load_glove_vectors(file, cache_dir):
     vectors = torch.cat([vectors, unk_vec], dim=0)
 
     vocab[PAD] = len(vocab)
-    pad_vec = torch.zeros((1, 300))
+    pad_vec = torch.zeros((1, vectors.shape[1]))
     vectors = torch.cat([vectors, pad_vec], dim=0)
 
     return vectors, vocab
