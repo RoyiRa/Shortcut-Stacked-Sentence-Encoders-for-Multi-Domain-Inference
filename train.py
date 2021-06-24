@@ -134,11 +134,13 @@ if __name__ == '__main__':
     # including punctuation rules and exceptions
     tokenizer = nlp.tokenizer
 
-    # emb, vocab = load_glove_vectors(emb_file)
-    # with open(emb_file.split('.')[0] + '.pkl', 'wb') as f:
-    #     pickle.dump((emb, vocab), f, protocol=pickle.HIGHEST_PROTOCOL)
-    with open(emb_file.split('.')[0] + '.pkl', 'rb') as f:
-        emb, vocab = pickle.load(f)
+    emb, vocab = load_glove_vectors(emb_file)
+    with open(emb_file.split('.')[0] + '.pkl', 'wb') as f:
+        pickle.dump((emb, vocab), f, protocol=pickle.HIGHEST_PROTOCOL)
+
+    ### use it if you have the emb in pickle
+    # with open(emb_file.split('.')[0] + '.pkl', 'rb') as f:
+    #     emb, vocab = pickle.load(f)
 
     model = StackBiLSTMMaxout(emb=emb, padding_idx=vocab[PAD])
     model.display()
