@@ -132,7 +132,7 @@ if __name__ == '__main__':
 
     batch = 32
     epochs = 3
-    emb_file = 'data/glove.42B.300d.txt'
+    emb_file = 'data/glove.6B.300d.txt'
     cache_dir = 'cache'
 
     emb, vocab = load_glove_vectors(file=emb_file, cache_dir=cache_dir)
