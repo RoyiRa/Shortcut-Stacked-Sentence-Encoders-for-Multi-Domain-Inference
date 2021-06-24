@@ -38,8 +38,12 @@ def train(model, train_loader, dev_loader, device, batch, epochs):
     seen_examples = 0
     best_acc = 0.0
 
-    report_freq = 512
-    eval_freq = report_freq * 32
+    accuracies = []
+    losses = []
+    steps = []
+    state_dict = None
+
+    eval_freq = 1024 * 50
 
     train_iterator = trange(0, epochs, desc="Epoch", position=0, leave=True)
     for epoch in train_iterator:
@@ -63,16 +67,36 @@ def train(model, train_loader, dev_loader, device, batch, epochs):
 
             seen_examples += logits.shape[0]
             train_loss += loss.item()
-            if seen_examples % report_freq == 0:
-                print(f'Train loss: {(train_loss / report_freq):.8f}')
-                train_loss = 0
 
             if seen_examples % eval_freq == 0:
+                print()
+                print(f'Train loss: {(train_loss / eval_freq):.8f}')
+
                 acc = predict(model, dev_loader, device)
                 if acc > best_acc:
                     best_acc = acc
+                    state_dict = model.state_dict()
                 print(f'Epoch: {epoch} dev acc: {acc:.8f}')
                 print(f'Epoch: {epoch} best dev acc: {best_acc:.8f}')
+
+                steps.append(seen_examples)
+                accuracies.append(acc)
+                losses.append(train_loss)
+                train_loss = 0
+
+    print(f'Train loss: {(train_loss / eval_freq):.8f}')
+    acc = predict(model, dev_loader, device)
+    if acc > best_acc:
+        best_acc = acc
+        state_dict = model.state_dict()
+    print(f'Epoch: {epoch} dev acc: {acc:.8f}')
+    print(f'Epoch: {epoch} best dev acc: {best_acc:.8f}')
+
+    steps.append(seen_examples)
+    accuracies.append(acc)
+    losses.append(train_loss)
+
+    return best_acc, accuracies, losses, steps, state_dict
 
 
 def predict(model, loader, device):
@@ -103,7 +127,7 @@ if __name__ == '__main__':
 
     emb_file = 'data/glove.6B.300d.txt'
     batch = 32
-    epochs = 5
+    epochs = 3
 
     nlp = English()
     # Create a Tokenizer with the default settings for English
@@ -116,16 +140,43 @@ if __name__ == '__main__':
     with open(emb_file.split('.')[0] + '.pkl', 'rb') as f:
         emb, vocab = pickle.load(f)
 
+    model = StackBiLSTMMaxout(emb=emb, padding_idx=vocab[PAD])
+    model.display()
+
     train_dataset = SNLIDataset(dataset=load_dataset('snli', split='train'), vocab=vocab, tokenizer=tokenizer)
     dev_dataset = SNLIDataset(dataset=load_dataset('snli', split='validation'), vocab=vocab, tokenizer=tokenizer)
+    test_dataset = SNLIDataset(dataset=load_dataset('snli', split='test'), vocab=vocab, tokenizer=tokenizer)
+
+    print(f'Pre-train embedding shape: {emb.shape}, vocab size:{len(vocab)}')
+    print(f'Train dataset size: {len(train_dataset)}')
+    print(f'Dev dataset size: {len(dev_dataset)}')
+    print(f'Test dataset size: {len(test_dataset)}')
 
     train_loader = DataLoader(train_dataset, batch_size=batch, shuffle=True, collate_fn=lambda b: pad_collate(b, vocab[PAD]))
     dev_loader = DataLoader(dev_dataset, batch_size=batch, shuffle=False, collate_fn=lambda b: pad_collate(b, vocab[PAD]))
+    test_loader = DataLoader(test_dataset, batch_size=batch, shuffle=False, collate_fn=lambda b: pad_collate(b, vocab[PAD]))
+
     model = StackBiLSTMMaxout(emb=emb, padding_idx=vocab[PAD])
     model.to(device)
 
-    train(model, train_loader, dev_loader, device, batch, epochs)
+    best_acc, accuracies, losses, steps, state_dict = train(model, train_loader, dev_loader, device, batch, epochs)
 
-    # print(emb.shape)
-    # print(train_dataset.dataset[0])
-    # print(train_dataset[0])
+    print(f'steps = {steps}')
+    print(f'accuracies = {accuracies}')
+    print(f'accuracies = {losses}')
+    print(f'best_acc_dev: {best_acc}')
+
+    model_path = 'data/model.pt'
+    print(f'Saving model and train dataset to: {model_path} is a checkpoint dict')
+    torch.save({'model_state_dict': state_dict}, model_path)
+
+    print(f'Evaluating on saved model')
+    checkpoint = torch.load(model_path, map_location=device)
+    model_state_dict = checkpoint['model_state_dict']
+
+    model = StackBiLSTMMaxout(emb=emb, padding_idx=vocab[PAD])
+    model.load_state_dict(state_dict=model_state_dict)
+    model.to(device)
+
+    acc = predict(model, test_loader, device)
+    print(f'Test acc: {acc:.8f}')
