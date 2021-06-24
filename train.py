@@ -123,7 +123,7 @@ if __name__ == '__main__':
     random.seed(6)
     np.random.seed(6)
     torch.manual_seed(6)
-    device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     nlp = English()
     # Create a Tokenizer with the default settings for English
@@ -132,7 +132,7 @@ if __name__ == '__main__':
 
     batch = 32
     epochs = 3
-    emb_file = 'data/glove.840B.300d.txt'
+    emb_file = 'data/glove.42B.300d.txt'
     cache_dir = 'cache'
 
     emb, vocab = load_glove_vectors(file=emb_file, cache_dir=cache_dir)
