@@ -9,7 +9,7 @@ from datasets import load_dataset
 from spacy.lang.en import English
 from transformers import get_linear_schedule_with_warmup
 from data import load_glove_vectors, SNLIDataset, PAD, PREMISE, HYPOTHESIS, LABEL
-from model import StackBiLSTMMaxout
+from model import ResStackBiLSTMMaxout
 from tqdm import trange
 from tqdm import tqdm
 
@@ -142,7 +142,7 @@ if __name__ == '__main__':
     # with open(emb_file.split('.')[0] + '.pkl', 'rb') as f:
     #     emb, vocab = pickle.load(f)
 
-    model = StackBiLSTMMaxout(emb=emb, padding_idx=vocab[PAD])
+    model = ResStackBiLSTMMaxout(emb=emb, padding_idx=vocab[PAD])
     model.display()
 
     train_dataset = SNLIDataset(dataset=load_dataset('snli', split='train'), vocab=vocab, tokenizer=tokenizer)
@@ -158,7 +158,7 @@ if __name__ == '__main__':
     dev_loader = DataLoader(dev_dataset, batch_size=batch, shuffle=False, collate_fn=lambda b: pad_collate(b, vocab[PAD]))
     test_loader = DataLoader(test_dataset, batch_size=batch, shuffle=False, collate_fn=lambda b: pad_collate(b, vocab[PAD]))
 
-    model = StackBiLSTMMaxout(emb=emb, padding_idx=vocab[PAD])
+    model = ResStackBiLSTMMaxout(emb=emb, padding_idx=vocab[PAD])
     model.to(device)
 
     best_acc, accuracies, losses, steps, state_dict = train(model, train_loader, dev_loader, device, batch, epochs)
@@ -176,7 +176,7 @@ if __name__ == '__main__':
     checkpoint = torch.load(model_path, map_location=device)
     model_state_dict = checkpoint['model_state_dict']
 
-    model = StackBiLSTMMaxout(emb=emb, padding_idx=vocab[PAD])
+    model = ResStackBiLSTMMaxout(emb=emb, padding_idx=vocab[PAD])
     model.load_state_dict(state_dict=model_state_dict)
     model.to(device)
 

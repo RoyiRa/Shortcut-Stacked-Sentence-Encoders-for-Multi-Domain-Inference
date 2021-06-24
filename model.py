@@ -3,9 +3,9 @@ from torch import nn
 from torch.nn.utils.rnn import pad_packed_sequence, pack_padded_sequence
 
 
-class StackBiLSTMMaxout(nn.Module):
+class ResStackBiLSTMMaxout(nn.Module):
     def __init__(self, emb, padding_idx):
-        super(StackBiLSTMMaxout, self).__init__()
+        super(ResStackBiLSTMMaxout, self).__init__()
 
         d = emb.shape[1]
         h = [300, 300, 300]
