@@ -26,9 +26,10 @@ Using conda (you may need to add the appropriate channels):
 conda create -n snli_env --file conda_requirements.txt
 ```
 
-3. Train:
+3. Re-produce results:
 
-Note: The default embedding file is 
+Note: The default embedding file is ```data/glove.8B.300d.txt``` (for faster training) 
+      you can change it to larger by modify ```emb_file``` variable in ```train.py``` (this is straightforward)
 ```
 python train.py
 ```
