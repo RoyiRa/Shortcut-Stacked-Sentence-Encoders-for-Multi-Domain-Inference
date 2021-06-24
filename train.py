@@ -1,13 +1,11 @@
 import random
 import torch
 import numpy as np
-import pickle
 from torch import nn
 from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import DataLoader
 from datasets import load_dataset
 from spacy.lang.en import English
-from transformers import get_linear_schedule_with_warmup
 from data import load_glove_vectors, SNLIDataset, PAD, PREMISE, HYPOTHESIS, LABEL
 from model import ResStackBiLSTMMaxout
 from tqdm import trange
@@ -30,9 +28,8 @@ def pad_collate(batch, token_pad):
 
 def train(model, train_loader, dev_loader, device, batch, epochs):
     criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.AdamW(model.parameters(), weight_decay=0.01, lr=2e-4)
-    t_total = (len(train_loader.dataset) // batch) * epochs
-    scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=0, num_training_steps=t_total)
+    start_lr = 2e-4
+    optimizer = torch.optim.AdamW(model.parameters(), weight_decay=0.01, lr=start_lr)
 
     train_loss = 0
     seen_examples = 0
@@ -47,6 +44,9 @@ def train(model, train_loader, dev_loader, device, batch, epochs):
 
     train_iterator = trange(0, epochs, desc="Epoch", position=0, leave=True)
     for epoch in train_iterator:
+        i_decay = epoch // 2
+        lr = start_lr / (2 ** i_decay)
+
         epoch_iterator = tqdm(train_loader, desc="Iteration", position=0, leave=True)
         for step, (xx_pre_pad, xx_hyp_pad, x_pre_lens, x_hyp_lens, yy) in enumerate(epoch_iterator):
             model.train()
@@ -60,10 +60,11 @@ def train(model, train_loader, dev_loader, device, batch, epochs):
             logits = model(premise_ids, hypothesis_ids, premise_lens, hypothesis_lens)
 
             loss = criterion(logits, yy)
-            loss.backward()
 
+            for pg in optimizer.param_groups:
+                pg['lr'] = lr
+            loss.backward()
             optimizer.step()
-            scheduler.step()
 
             seen_examples += logits.shape[0]
             train_loss += loss.item()
