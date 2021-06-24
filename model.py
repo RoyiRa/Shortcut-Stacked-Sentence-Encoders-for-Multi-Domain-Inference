@@ -14,7 +14,7 @@ class ResStackBiLSTMMaxout(nn.Module):
         # v_size = 10
         # self.Embd = nn.Embedding(v_size, d)
 
-        self.embedding = nn.Embedding.from_pretrained(torch.from_numpy(emb), freeze=False, padding_idx=padding_idx)
+        self.embedding = nn.Embedding.from_pretrained(emb, freeze=False, padding_idx=padding_idx)
 
         self.bilstm0 = nn.LSTM(input_size=d, hidden_size=h[0], num_layers=1, bidirectional=True)
 

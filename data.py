@@ -1,3 +1,4 @@
+import torchtext
 from torch.utils.data import Dataset
 import numpy as np
 import torch
@@ -21,29 +22,24 @@ LABEL = 'label'
 # Make sure you filter them before starting the training using datasets.Dataset.filter.
 
 
-def load_glove_vectors(file):
-    W = []
-    vocab = {}
-    with open(file, 'r', encoding='utf8') as f:
-        for row in f:
-            row = row.split()
-            vocab[row[0]] = len(vocab)
+def load_glove_vectors(file, cache_dir):
+    glove = torchtext.vocab.Vectors(name=file, cache=cache_dir)
 
-            v = np.array(row[1:], dtype=np.float)
-            W.append(v)
-    d = W[0].shape[0]
+    vectors = glove.vectors
+    vocab = glove.stoi
 
     vocab[UNK] = len(vocab)
-    W.append(np.mean(W, axis=0))
+    unk_vec = vectors.mean(dim=0, keepdim=True)
+    vectors = torch.cat([vectors, unk_vec], dim=0)
 
     vocab[PAD] = len(vocab)
-    W.append(np.zeros(d))
+    pad_vec = torch.zeros((1, 300))
+    vectors = torch.cat([vectors, pad_vec], dim=0)
 
-    return np.array(W, dtype=np.float32), vocab
+    return vectors, vocab
 
 
 class SNLIDataset(Dataset):
-
 
     def __init__(self, dataset, vocab, tokenizer):
         self.dataset = dataset
@@ -55,12 +51,11 @@ class SNLIDataset(Dataset):
     def _tensorize_example(self, example):
         premise, hypothesis, label = example[PREMISE], example[HYPOTHESIS], example[LABEL]
 
+        tokens = [t.text for t in self.tokenizer(premise)]
+        premise_ids = [self.vocab[t] if t in self.vocab else self.vocab[UNK] for t in tokens]
 
-        tokens = [t.text.lower() for t in self.tokenizer(premise)]
-        premise_ids = [self.vocab[t.lower()] if t.lower() in self.vocab else self.vocab[UNK] for t in tokens]
-
-        tokens = [t.text.lower() for t in self.tokenizer(hypothesis)]
-        hypothesis_ids = [self.vocab[t.lower()] if t.lower() in self.vocab else self.vocab[UNK] for t in tokens]
+        tokens = [t.text for t in self.tokenizer(hypothesis)]
+        hypothesis_ids = [self.vocab[t] if t in self.vocab else self.vocab[UNK] for t in tokens]
 
         premise_ids = torch.tensor(premise_ids, dtype=torch.long)
         hypothesis_ids = torch.tensor(hypothesis_ids, dtype=torch.long)

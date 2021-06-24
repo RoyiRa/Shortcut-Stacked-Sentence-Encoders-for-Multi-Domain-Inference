@@ -123,24 +123,19 @@ if __name__ == '__main__':
     random.seed(6)
     np.random.seed(6)
     torch.manual_seed(6)
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-    emb_file = 'data/glove.6B.300d.txt'
-    batch = 32
-    epochs = 3
+    device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
 
     nlp = English()
     # Create a Tokenizer with the default settings for English
     # including punctuation rules and exceptions
     tokenizer = nlp.tokenizer
 
-    emb, vocab = load_glove_vectors(emb_file)
-    with open(emb_file.split('.')[0] + '.pkl', 'wb') as f:
-        pickle.dump((emb, vocab), f, protocol=pickle.HIGHEST_PROTOCOL)
+    batch = 32
+    epochs = 3
+    emb_file = 'data/glove.840B.300d.txt'
+    cache_dir = 'cache'
 
-    ### use it if you have the emb in pickle
-    # with open(emb_file.split('.')[0] + '.pkl', 'rb') as f:
-    #     emb, vocab = pickle.load(f)
+    emb, vocab = load_glove_vectors(file=emb_file, cache_dir=cache_dir)
 
     model = ResStackBiLSTMMaxout(emb=emb, padding_idx=vocab[PAD])
     model.display()
