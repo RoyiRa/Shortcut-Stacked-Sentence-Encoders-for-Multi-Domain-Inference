@@ -31,6 +31,7 @@ def train(model, train_loader, dev_loader, device, batch, epochs):
     start_lr = 2e-4
     optimizer = torch.optim.AdamW(model.parameters(), weight_decay=0.01, lr=start_lr)
 
+    eval_time = 1
     train_loss = 0
     seen_examples = 0
     best_acc = 0.0
@@ -40,7 +41,7 @@ def train(model, train_loader, dev_loader, device, batch, epochs):
     steps = []
     state_dict = None
 
-    eval_freq = 1024 * 50
+    eval_freq = 35000
 
     train_iterator = trange(0, epochs, desc="Epoch", position=0, leave=True)
     for epoch in train_iterator:
@@ -69,7 +70,8 @@ def train(model, train_loader, dev_loader, device, batch, epochs):
             seen_examples += logits.shape[0]
             train_loss += loss.item()
 
-            if seen_examples % eval_freq == 0:
+            if seen_examples >= (eval_time * eval_freq):
+                eval_time += 1
                 print()
                 print(f'Train loss: {(train_loss / eval_freq):.8f}')
 
