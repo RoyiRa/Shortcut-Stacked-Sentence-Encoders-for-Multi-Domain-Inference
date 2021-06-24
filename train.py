@@ -121,10 +121,10 @@ def predict(model, loader, device):
 
 
 if __name__ == '__main__':
-    random.seed(6)
-    np.random.seed(6)
-    torch.manual_seed(6)
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    random.seed(12)
+    np.random.seed(12)
+    torch.manual_seed(12)
+    device = torch.device('cuda:7' if torch.cuda.is_available() else 'cpu')
 
     nlp = English()
     # Create a Tokenizer with the default settings for English
@@ -133,7 +133,8 @@ if __name__ == '__main__':
 
     batch = 32
     epochs = 3
-    emb_file = 'data/glove.6B.300d.txt'
+    emb_file = 'data/glove.840B.300d.txt'
+    lower = False if '840' in emb_file else True
     cache_dir = 'cache'
 
     emb, vocab = load_glove_vectors(file=emb_file, cache_dir=cache_dir)
@@ -141,10 +142,11 @@ if __name__ == '__main__':
     model = ResStackBiLSTMMaxout(emb=emb, padding_idx=vocab[PAD])
     model.display()
 
-    train_dataset = SNLIDataset(dataset=load_dataset('snli', split='train'), vocab=vocab, tokenizer=tokenizer)
-    dev_dataset = SNLIDataset(dataset=load_dataset('snli', split='validation'), vocab=vocab, tokenizer=tokenizer)
-    test_dataset = SNLIDataset(dataset=load_dataset('snli', split='test'), vocab=vocab, tokenizer=tokenizer)
+    train_dataset = SNLIDataset(dataset=load_dataset('snli', split='train'), vocab=vocab, tokenizer=tokenizer, lower=lower)
+    dev_dataset = SNLIDataset(dataset=load_dataset('snli', split='validation'), vocab=vocab, tokenizer=tokenizer, lower=lower)
+    test_dataset = SNLIDataset(dataset=load_dataset('snli', split='test'), vocab=vocab, tokenizer=tokenizer, lower=lower)
 
+    print(f'Pre-train embedding file: {emb_file}')
     print(f'Pre-train embedding shape: {emb.shape}, vocab size:{len(vocab)}')
     print(f'Train dataset size: {len(train_dataset)}')
     print(f'Dev dataset size: {len(dev_dataset)}')

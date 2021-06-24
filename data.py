@@ -1,6 +1,5 @@
 import torchtext
 from torch.utils.data import Dataset
-import numpy as np
 import torch
 
 
@@ -41,21 +40,26 @@ def load_glove_vectors(file, cache_dir):
 
 class SNLIDataset(Dataset):
 
-    def __init__(self, dataset, vocab, tokenizer):
+    def __init__(self, dataset, vocab, tokenizer, lower):
         self.dataset = dataset
         self.vocab = vocab
         self.tokenizer = tokenizer
+        self.lower = lower
 
         self.examples = [self._tensorize_example(ex) for ex in dataset if ex[LABEL] != -1]
 
     def _tensorize_example(self, example):
         premise, hypothesis, label = example[PREMISE], example[HYPOTHESIS], example[LABEL]
 
-        tokens = [t.text for t in self.tokenizer(premise)]
-        premise_ids = [self.vocab[t] if t in self.vocab else self.vocab[UNK] for t in tokens]
+        if self.lower:
+            pre_tokens = [t.text.lower() for t in self.tokenizer(premise)]
+            hyp_tokens = [t.text.lower() for t in self.tokenizer(hypothesis)]
+        else:
+            pre_tokens = [t.text for t in self.tokenizer(premise)]
+            hyp_tokens = [t.text for t in self.tokenizer(hypothesis)]
 
-        tokens = [t.text for t in self.tokenizer(hypothesis)]
-        hypothesis_ids = [self.vocab[t] if t in self.vocab else self.vocab[UNK] for t in tokens]
+        premise_ids = [self.vocab[t] if t in self.vocab else self.vocab[UNK] for t in pre_tokens]
+        hypothesis_ids = [self.vocab[t] if t in self.vocab else self.vocab[UNK] for t in hyp_tokens]
 
         premise_ids = torch.tensor(premise_ids, dtype=torch.long)
         hypothesis_ids = torch.tensor(hypothesis_ids, dtype=torch.long)
