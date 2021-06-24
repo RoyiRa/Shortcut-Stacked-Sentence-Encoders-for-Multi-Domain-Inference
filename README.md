@@ -1,6 +1,9 @@
 Royi Rassin, 311334734
 Shon Otmazgin, 305394975
 
+This is a repo for multiNLI_encoder.
+
+This repo replicate the paper [Shortcut-Stacked Sentence Encoders for the MultiNLI inference](https://arxiv.org/pdf/1708.02312.pdf). 
 1. Download GloVe pretrained embedding (run below script):
 ```
 mkdir data

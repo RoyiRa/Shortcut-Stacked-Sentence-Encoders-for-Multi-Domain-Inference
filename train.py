@@ -165,7 +165,7 @@ if __name__ == '__main__':
 
     print(f'steps = {steps}')
     print(f'accuracies = {accuracies}')
-    print(f'accuracies = {losses}')
+    print(f'losses = {losses}')
     print(f'best_acc_dev: {best_acc}')
 
     model_path = 'data/model.pt'
