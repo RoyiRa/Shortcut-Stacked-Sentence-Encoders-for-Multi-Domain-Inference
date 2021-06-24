@@ -21,9 +21,14 @@ Using pip:
 pip install -r requirements.txt
 ```
 
-Using conda:
+Using conda (you may need to add the appropriate channels):
 ```
-conda create -n snli_env
-conda activate snli_env
-conda install -r requirements.txt
+conda create -n snli_env --file conda_requirements.txt
+```
+
+3. Train:
+
+Note: The default embedding file is 
+```
+python train.py
 ```
