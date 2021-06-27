@@ -1,10 +1,10 @@
-Royi Rassin, 311334734
-Shon Otmazgin, 305394975
+Royi Rassin
+Shon Otmazgin
 
 This is a repo for multiNLI_encoder.
 
-This repo replicate the paper [Shortcut-Stacked Sentence Encoders for the MultiNLI inference](https://arxiv.org/pdf/1708.02312.pdf). 
-1. Download GloVe pretrained embedding (run below script):
+This repo replicates the paper [Shortcut-Stacked Sentence Encoders for the MultiNLI inference](https://arxiv.org/pdf/1708.02312.pdf). 
+1. Download GloVe pretrained embedding (run script below):
 ```
 mkdir data
 cd data
@@ -32,7 +32,7 @@ conda create -n snli_env --file conda_requirements.txt
 3. Re-produce results:
 
 Note: The default embedding file is ```data/glove.8B.300d.txt``` (for faster training) 
-      you can change it to larger by modify ```emb_file``` variable in ```train.py``` (this is straightforward)
+      you can change it to larger by modifying ```emb_file``` variable in ```train.py``` (this is straightforward)
 ```
 python train.py
 ```
